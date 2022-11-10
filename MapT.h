@@ -10,12 +10,16 @@
 using namespace std;
 
 class KeyDoesNotExist {};
+class IteratorOutOfBounds {};
 
 template<class K, class T>
 class MapT {
 public:
     MapT();
+    explicit MapT(int numBuckets);
     ~MapT();
+
+    void operator=(const MapT<K,T>& other);
 
     void Add(K key, T value);
     void Remove(K key);

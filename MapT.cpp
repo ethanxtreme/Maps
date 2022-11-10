@@ -19,6 +19,31 @@ MapT<K, T>::MapT() {
 }
 
 template<class K, class T>
+MapT<K, T>::MapT(int numBuckets) {
+    this->numBuckets = numBuckets;
+    numKeys = 0;
+    maxLoad = DEFAULT_LOAD;
+
+    buckets = new forward_list<pair<K,T>>[numBuckets];
+}
+
+template<class K, class T>
+void MapT<K, T>::operator=(const MapT<K, T> &other) {
+    delete []buckets;
+
+    buckets = new forward_list<pair<K,T>>[other.numBuckets];
+    numKeys = 0;
+    maxLoad = other.maxLoad;
+
+    for (int b = 0; b < other.numBuckets; b++){
+        for(auto it = other.buckets[b].begin(); it != other.buckets[b].end(); ++it){
+            this->Add(it->first, it->second);
+        }
+    }
+}
+
+
+template<class K, class T>
 MapT<K, T>::~MapT() {
     delete []buckets; //how you delete arrays
 }
@@ -134,15 +159,29 @@ template<class K, class T>
 void MapT<K, T>::ResetIterator() {
     mapIter = buckets[0].begin();
     currBucket = 0;
+
 }
 
 template<class K, class T>
 pair<K,T> MapT<K, T>::GetNextPair() {
-    pair<K,T> currVal;
+    pair<K,T> currPair;
 
+    while (mapIter == buckets[currBucket].end()){ //if we are at end of current bucket
+        currBucket++; //moves down to next bucket
 
+        if(currBucket >= numBuckets){
+            throw IteratorOutOfBounds();
+        }
 
-    return currVal;
+        mapIter = buckets[currBucket].begin();
+    }
+
+    currPair.first = mapIter->first;
+    currPair.second = mapIter->second;
+
+    ++mapIter;
+
+    return currPair;
 }
 
 template<class K, class T>
@@ -151,6 +190,7 @@ int MapT<K, T>::GetHashIndex(const K &key) {
     typename unordered_map<K,T>::hasher hashFunction = mapper.hash_function();
     return static_cast<int>(hashFunction(key) % numBuckets);
 }
+
 
 
 
